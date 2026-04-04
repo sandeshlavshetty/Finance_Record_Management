@@ -1,0 +1,297 @@
+# Finance Dashboard Backend
+
+Role-based Django REST Framework backend for a finance dashboard platform. The system is structured around a service layer so views stay thin, business rules stay testable, and analytics remain centralized.
+
+## Stack
+
+- Django 5
+- Django REST Framework
+- PostgreSQL
+- JWT authentication via SimpleJWT
+- drf-spectacular for OpenAPI / Swagger
+- django-filter for filtering and search
+
+## Folder Structure
+
+```text
+backend/
+├── config/
+├── core/
+├── users/
+├── records/
+├── dashboard/
+├── manage.py
+└── requirements.txt
+```
+
+## Architecture
+
+- `core` contains shared constants, permissions, pagination, response formatting, logging middleware, and exception handling.
+- `users` owns authentication, custom user modeling, role assignment, and activation controls.
+- `records` owns financial record CRUD, filtering, soft delete, and search.
+- `dashboard` owns analytics and aggregation logic.
+- `config` wires settings, JWT, Swagger, and URL routing.
+
+Business logic lives in services:
+
+- `users/services.py`
+- `records/services.py`
+- `dashboard/services.py`
+
+## Data Model
+
+### User
+
+- `id`
+- `email` unique
+- `password` hashed
+- `role` one of `ADMIN`, `ANALYST`, `VIEWER`
+- `is_active`
+- `created_at`
+
+### Record
+
+- `id`
+- `user` foreign key to user
+- `amount`
+- `type` income or expense
+- `category`
+- `date`
+- `note`
+- `is_deleted` soft delete flag
+- `created_at`
+
+## Why PostgreSQL
+
+PostgreSQL is a better fit than NoSQL here because the data is strongly structured and query-heavy:
+
+- ACID guarantees matter for financial records.
+- Relational integrity helps prevent orphaned records.
+- Aggregations like monthly trends and category totals are straightforward and efficient.
+- Indexes and query planner support make reporting fast and predictable.
+
+Trade-offs:
+
+- Schema changes require migrations.
+- It is less flexible than document databases for unstructured payloads.
+
+## Why Django Instead of FastAPI
+
+- Django gives a mature ORM, auth system, admin tooling, and migration workflow out of the box.
+- The assignment needs RBAC, relational modeling, and service-oriented organization, which Django supports cleanly.
+- DRF pairs naturally with Django for serializers, validation, permissions, throttling, and pagination.
+
+Trade-off:
+
+- FastAPI is lighter and often faster to bootstrap for pure API services, but Django is a stronger fit for a structured backend with built-in auth and data modeling.
+
+## RBAC Matrix
+
+- `Viewer`: dashboard summaries only.
+- `Analyst`: dashboard summaries and record reads.
+- `Admin`: full CRUD for records, user management, and analytics.
+
+## Indexing Strategy
+
+Indexes are added for the common access patterns:
+
+- `users.email`
+- `users.role, users.is_active`
+- `records.user, records.date`
+- `records.category, records.type`
+- `records.is_deleted, records.date`
+
+This supports user lookups, date-range filtering, category filtering, and active-record scans.
+
+## Query Performance Notes
+
+- Record list queries use `select_related("user")` to avoid N+1 queries.
+- Dashboard aggregation uses ORM `aggregate`, `annotate`, and `TruncMonth` instead of Python-side loops.
+- Pagination uses limit/offset to keep list responses bounded.
+
+## Setup
+
+1. Create and activate a virtual environment.
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Create a `.env` file from `.env.example`.
+4. Start PostgreSQL and create the database.
+5. Run migrations:
+
+```bash
+python manage.py migrate
+```
+
+6. Create an admin user if needed:
+
+```bash
+python manage.py createsuperuser
+```
+
+7. Run the API server:
+
+```bash
+python manage.py runserver
+```
+
+## API Endpoints
+
+### Auth
+
+- `POST /api/auth/login/`
+- `POST /api/auth/refresh/`
+
+### Users
+
+- `GET /api/users/`
+- `POST /api/users/`
+- `GET /api/users/{id}/`
+- `PATCH /api/users/{id}/role/`
+- `PATCH /api/users/{id}/status/`
+
+### Records
+
+- `GET /api/records/`
+- `POST /api/records/`
+- `GET /api/records/{id}/`
+- `PUT /api/records/{id}/`
+- `PATCH /api/records/{id}/`
+- `DELETE /api/records/{id}/`
+
+### Dashboard
+
+- `GET /api/dashboard/summary/`
+
+### Docs
+
+- `GET /api/schema/`
+- `GET /api/docs/`
+
+## Filtering and Search
+
+Records support:
+
+- `category`
+- `type`
+- `start_date`
+- `end_date`
+- `search` for note or category
+- `limit` and `offset`
+
+Example:
+
+```http
+GET /api/records/?category=Salary&start_date=2026-01-01&end_date=2026-01-31&search=bonus&limit=10&offset=0
+```
+
+## Response Format
+
+All responses follow a consistent envelope:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "error": null
+}
+```
+
+Errors use the same envelope with `success: false`.
+
+## Sample Requests
+
+### Login
+
+```http
+POST /api/auth/login/
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "StrongPass123"
+}
+```
+
+Sample response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "refresh": "<refresh-token>",
+    "access": "<access-token>",
+    "user": {
+      "id": 1,
+      "email": "admin@example.com",
+      "role": "ADMIN",
+      "is_active": true,
+      "created_at": "2026-04-04T00:00:00Z"
+    }
+  },
+  "error": null
+}
+```
+
+### Create Record
+
+```http
+POST /api/records/
+Authorization: Bearer <access-token>
+Content-Type: application/json
+
+{
+  "amount": "1200.00",
+  "type": "income",
+  "category": "Salary",
+  "date": "2026-01-31",
+  "note": "January salary"
+}
+```
+
+### Dashboard Summary
+
+```http
+GET /api/dashboard/summary/?start_date=2026-01-01&end_date=2026-01-31
+Authorization: Bearer <access-token>
+```
+
+## Validation and Error Handling
+
+- Amount must be greater than zero.
+- Invalid transaction types are rejected.
+- Date range filters validate `start_date <= end_date`.
+- Permissions are enforced before service execution.
+- Soft-deleted records are hidden from normal queries.
+
+## Rate Limiting
+
+Scoped throttles are configured for auth, users, records, and dashboard endpoints. This prevents abuse and keeps the API stable under load.
+
+## Logging
+
+A request logging middleware writes method, path, user, status code, and request duration to the application logger.
+
+## Tests
+
+Basic API tests are included for:
+
+- users module
+- records module
+- dashboard module
+
+Run them with:
+
+```bash
+python manage.py test
+```
+
+## Trade-off Summary
+
+- PostgreSQL was chosen for relational integrity, ACID behavior, and aggregation support.
+- Django was chosen over FastAPI because the project benefits from built-in auth, ORM, admin, migrations, and DRF integrations.
+- A service layer was introduced to keep views thin and business rules reusable.
+- The design intentionally avoids microservices to keep the system maintainable and assessment-friendly.
