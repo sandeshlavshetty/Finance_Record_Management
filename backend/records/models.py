@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -15,7 +17,7 @@ class RecordQuerySet(models.QuerySet):
 
 class Record(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="records")
-    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
     type = models.CharField(max_length=16, choices=TRANSACTION_TYPE_CHOICES, db_index=True)
     category = models.CharField(max_length=100, db_index=True)
     date = models.DateField(db_index=True)
