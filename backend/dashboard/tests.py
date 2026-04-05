@@ -49,3 +49,27 @@ class DashboardAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]["user_breakdown"]), 2)
         self.assertEqual(response.data["data"]["user_breakdown"][0]["user_email"], "admin@example.com")
+
+    def test_split_dashboard_endpoints_are_available(self):
+        self.client.force_authenticate(self.viewer)
+
+        comparison = self.client.get(reverse("dashboard-comparison"), {"start_date": "2026-01-01", "end_date": "2026-01-31"})
+        categories = self.client.get(reverse("dashboard-categories"), {"start_date": "2026-01-01", "end_date": "2026-01-31"})
+        top_spending = self.client.get(reverse("dashboard-top-spending"), {"start_date": "2026-01-01", "end_date": "2026-01-31"})
+        trends = self.client.get(reverse("dashboard-trends"), {"start_date": "2026-01-01", "end_date": "2026-01-31"})
+        insights = self.client.get(reverse("dashboard-insights"), {"start_date": "2026-01-01", "end_date": "2026-01-31"})
+
+        self.assertEqual(comparison.status_code, status.HTTP_200_OK)
+        self.assertIn("period_comparison", comparison.data["data"])
+
+        self.assertEqual(categories.status_code, status.HTTP_200_OK)
+        self.assertIn("category_breakdown", categories.data["data"])
+
+        self.assertEqual(top_spending.status_code, status.HTTP_200_OK)
+        self.assertIn("top_spending_categories", top_spending.data["data"])
+
+        self.assertEqual(trends.status_code, status.HTTP_200_OK)
+        self.assertIn("monthly_trends", trends.data["data"])
+
+        self.assertEqual(insights.status_code, status.HTTP_200_OK)
+        self.assertIn("insights", insights.data["data"])

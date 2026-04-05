@@ -13,3 +13,14 @@ class DashboardQuerySerializer(serializers.Serializer):
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError({"end_date": "end_date must be greater than or equal to start_date."})
         return attrs
+
+
+class DashboardAnalyticsResponseSerializer(serializers.Serializer):
+    summary = serializers.JSONField(required=False)
+    period_comparison = serializers.JSONField(required=False)
+    category_breakdown = serializers.JSONField(required=False)
+    top_spending_categories = serializers.JSONField(required=False)
+    recent_transactions = serializers.JSONField(required=False)
+    monthly_trends = serializers.JSONField(required=False)
+    insights = serializers.JSONField(required=False)
+    user_breakdown = serializers.JSONField(required=False)

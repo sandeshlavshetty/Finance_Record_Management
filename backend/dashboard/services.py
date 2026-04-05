@@ -257,3 +257,66 @@ class DashboardService:
             "insights": cls._insights(summary, comparison, top_categories),
             "user_breakdown": user_breakdown,
         }
+
+    @classmethod
+    def get_comparison(cls, user, filters):
+        queryset = cls._apply_filters(cls._base_queryset(user), filters)
+        comparison = cls._period_comparison(queryset)
+        return {"period_comparison": comparison}
+
+    @classmethod
+    def get_category_breakdown(cls, user, filters):
+        queryset = cls._apply_filters(cls._base_queryset(user), filters)
+        return {
+            "category_breakdown": list(
+                queryset.values("category").annotate(
+                    total_amount=Sum("amount"),
+                    record_count=Count("id"),
+                ).order_by("-total_amount", "category")
+            )
+        }
+
+    @classmethod
+    def get_top_spending_categories(cls, user, filters):
+        queryset = cls._apply_filters(cls._base_queryset(user), filters)
+        summary = cls._totals(queryset)
+        return {"top_spending_categories": cls._top_spending_categories(queryset, summary["total_expense"])}
+
+    @classmethod
+    def get_monthly_trends(cls, user, filters):
+        queryset = cls._apply_filters(cls._base_queryset(user), filters)
+        return {
+            "monthly_trends": list(
+                queryset.annotate(month=TruncMonth("date")).values("month").annotate(
+                    income=Sum(
+                        Case(
+                            When(type=INCOME, then="amount"),
+                            default=Value(Decimal("0.00")),
+                            output_field=DecimalField(max_digits=12, decimal_places=2),
+                        )
+                    ),
+                    expense=Sum(
+                        Case(
+                            When(type=EXPENSE, then="amount"),
+                            default=Value(Decimal("0.00")),
+                            output_field=DecimalField(max_digits=12, decimal_places=2),
+                        )
+                    ),
+                ).order_by("month")
+            )
+        }
+
+    @classmethod
+    def get_insights(cls, user, filters):
+        queryset = cls._apply_filters(cls._base_queryset(user), filters)
+        summary = cls._totals(queryset)
+        comparison = cls._period_comparison(queryset)
+        top_categories = cls._top_spending_categories(queryset, summary["total_expense"])
+        return {"insights": cls._insights(summary, comparison, top_categories)}
+
+    @classmethod
+    def get_user_breakdown(cls, user, filters):
+        if user.role != ADMIN:
+            return {"user_breakdown": []}
+        queryset = cls._apply_filters(cls._base_queryset(user), filters)
+        return {"user_breakdown": cls._user_breakdown(queryset)}
