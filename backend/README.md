@@ -118,19 +118,43 @@ This supports user lookups, date-range filtering, category filtering, and active
 pip install -r requirements.txt
 ```
 
-3. Create a `.env` file from `.env.example`.
+3. Create a `.env` file with the following variables:
+
+```env
+DEBUG=1
+SECRET_KEY=your-secret-key
+ALLOWED_HOSTS=localhost,127.0.0.1
+POSTGRES_DB=finance_dashboard
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+ACCESS_TOKEN_LIFETIME_MINUTES=30
+REFRESH_TOKEN_LIFETIME_DAYS=7
+SETUP_TOKEN=your-super-secret-setup-token-change-in-production
+```
+
 4. Start PostgreSQL and create the database.
+
 5. Run migrations:
 
 ```bash
 python manage.py migrate
 ```
 
-6. Create an admin user if needed:
+6. **Initialize admin account** using the setup endpoint (one-time only):
 
 ```bash
-python manage.py createsuperuser
+curl -X POST http://localhost:8000/api/users/setup/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "SecurePassword123",
+    "setup_token": "your-super-secret-setup-token-change-in-production"
+  }'
 ```
+
+> **Note:** The setup endpoint only works when the database is empty. After creating the first admin, it will reject all further setup attempts. This is a security feature to prevent unauthorized admin creation.
 
 7. Run the API server:
 
@@ -138,12 +162,28 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+### Using Postman
+
+1. Import both files from `postman/`:
+   - `Finance Dashboard API.postman_collection.json`
+   - `Finance Dashboard API.postman_environment.json`
+
+2. In Postman, update the environment variables:
+   - `base_url`: Your API URL (default: `http://127.0.0.1:8000`)
+   - `setup_token`: The `SETUP_TOKEN` value from your `.env`
+   - `admin_email` & `admin_password`: Your desired admin credentials
+
+3. Run the **"Setup (First-time only)"** request in the Auth folder to create the initial admin
+4. Then use **"Login"** to get JWT tokens
+5. Other endpoints will auto-populate `access_token` for authenticated requests
+
 ## API Endpoints
 
 ### Auth
 
-- `POST /api/auth/login/`
-- `POST /api/auth/refresh/`
+- `POST /api/users/setup/` — Initialize first admin (one-time, requires `setup_token`)
+- `POST /api/auth/login/` — Login and get JWT tokens
+- `POST /api/auth/refresh/` — Refresh access token
 
 ### Users
 

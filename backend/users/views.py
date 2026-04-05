@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import logging
+import os
+
+from django.core.cache import cache
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.permissions import IsAdminRole
@@ -15,6 +20,8 @@ from users.serializers import (
     UserStatusUpdateSerializer,
     UserSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -41,6 +48,46 @@ class UserViewSet(
         if self.action == "set_status":
             return UserStatusUpdateSerializer
         return UserSerializer
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny], url_path="setup")
+    def setup(self, request, *args, **kwargs):
+        """First-time setup: creates initial admin account with security checks"""
+
+        # 1. CHECK: DB must be empty
+        if User.objects.exists():
+            logger.warning(f"Setup attempted when DB not empty from {request.META.get('REMOTE_ADDR')}")
+            raise ValidationError({"detail": "Database already initialized"})
+
+        # 2. CHECK: Rate limit - max 5 attempts per hour per IP
+        client_ip = request.META.get("REMOTE_ADDR", "unknown")
+        cache_key = f"setup_attempts:{client_ip}"
+        attempts = cache.get(cache_key, 0)
+
+        if attempts >= 5:
+            logger.warning(f"Setup rate limit exceeded for {client_ip}")
+            raise PermissionDenied("Too many setup attempts. Try again later.")
+
+        # 3. CHECK: Require setup token
+        setup_token = os.getenv("SETUP_TOKEN")
+        if not setup_token:
+            logger.error("SETUP_TOKEN not configured in environment")
+            raise PermissionDenied("Setup not enabled")
+
+        provided_token = request.data.get("setup_token")
+        if provided_token != setup_token:
+            cache.set(cache_key, attempts + 1, 3600)  # 1 hour
+            logger.warning(f"Invalid setup token attempt from {client_ip}")
+            raise PermissionDenied("Invalid setup token")
+
+        # 4. CREATE: Admin user
+        serializer = UserCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save(role="ADMIN", is_staff=True)
+
+        logger.info(f"Setup complete: Admin {user.email} created from {client_ip}")
+        cache.delete(cache_key)  # Clear attempts on success
+
+        return success_response(UserSerializer(user).data, status_code=status.HTTP_201_CREATED)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -10,6 +10,25 @@
       "name": "Auth",
       "item": [
         {
+          "name": "Setup (First-time only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/setup/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "setup", ""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\",\n  \"setup_token\": \"{{setup_token}}\"\n}"
+            },
+            "description": "Initial setup endpoint - creates first admin user. Only works if database is empty. Requires SETUP_TOKEN from environment."
+          }
+        },
+        {
           "name": "Login",
           "request": {
             "method": "POST",
