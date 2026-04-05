@@ -121,5 +121,5 @@ See `DEPLOYMENT.md` for detailed deployment steps.
 ## Portfolio
 
 Full-stack projects showcasing production architecture:
-- **UI + Backend + AI**: Active 3000+ users, 99.9% uptime
+- **UI + Backend + AI**: Active 3000+ users, 99.9% uptime projects 
 - [Portfolio](https://sandeshlavshetty.vercel.app/)
