@@ -107,6 +107,7 @@ This supports user lookups, date-range filtering, category filtering, and active
 
 - Record list queries use `select_related("user")` to avoid N+1 queries.
 - Dashboard aggregation uses ORM `aggregate`, `annotate`, and `TruncMonth` instead of Python-side loops.
+- Dashboard summary now includes period comparison, top spending categories, business insights, and admin-only user breakdowns.
 - Pagination uses limit/offset to keep list responses bounded.
 
 ## Setup
@@ -298,6 +299,40 @@ Content-Type: application/json
 GET /api/dashboard/summary/?start_date=2026-01-01&end_date=2026-01-31
 Authorization: Bearer <access-token>
 ```
+
+Try these in Postman:
+
+- `Summary - No Filters`
+- `Summary - Current Month`
+- `Summary - Comparison Window`
+- `Comparison`
+- `Category Breakdown`
+- `Top Spending Categories`
+- `Monthly Trends`
+- `Insights`
+- `Admin User Breakdown`
+
+Swagger also shows query parameter examples for `start_date` and `end_date`, plus a response example for the analytics payload.
+
+Other dashboard routes:
+
+```http
+GET /api/dashboard/comparison/
+GET /api/dashboard/categories/
+GET /api/dashboard/top-spending/
+GET /api/dashboard/trends/
+GET /api/dashboard/insights/
+GET /api/dashboard/users/
+```
+
+The dashboard response includes:
+
+- Summary totals for income, expense, net balance, and transaction count
+- Period-over-period comparison
+- Category breakdown and top spending categories
+- Recent transactions and monthly trends
+- Insight flags such as expense spikes or concentration in a single category
+- Admin-only user-level breakdown
 
 ## Validation and Error Handling
 
