@@ -69,6 +69,7 @@ class DashboardSummaryAPIView(DashboardBaseAPIView):
     page_title = "Dashboard summary and analytics"
 
     @extend_schema(
+        tags=["Dashboard"],
         summary="Dashboard summary and analytics",
         description=(
             "Returns business-focused dashboard analytics including summary totals, period comparison, "
@@ -111,6 +112,7 @@ class DashboardComparisonAPIView(DashboardBaseAPIView):
     page_title = "Dashboard comparison"
 
     @extend_schema(
+        tags=["Dashboard"],
         summary="Dashboard comparison",
         description="Compares the selected window against the immediately previous window.",
         parameters=dashboard_query_parameters(),
@@ -126,6 +128,7 @@ class DashboardCategoryBreakdownAPIView(DashboardBaseAPIView):
     page_title = "Category breakdown"
 
     @extend_schema(
+        tags=["Dashboard"],
         summary="Category breakdown",
         description="Shows category-wise totals and record counts for the selected window.",
         parameters=dashboard_query_parameters(),
@@ -141,6 +144,7 @@ class DashboardTopSpendingAPIView(DashboardBaseAPIView):
     page_title = "Top spending categories"
 
     @extend_schema(
+        tags=["Dashboard"],
         summary="Top spending categories",
         description="Ranks the highest expense categories and their share of total expenses.",
         parameters=dashboard_query_parameters(),
@@ -156,6 +160,7 @@ class DashboardTrendsAPIView(DashboardBaseAPIView):
     page_title = "Monthly trends"
 
     @extend_schema(
+        tags=["Dashboard"],
         summary="Monthly trends",
         description="Shows monthly income and expense trends.",
         parameters=dashboard_query_parameters(),
@@ -171,6 +176,7 @@ class DashboardInsightsAPIView(DashboardBaseAPIView):
     page_title = "Business insights"
 
     @extend_schema(
+        tags=["Dashboard"],
         summary="Business insights",
         description="Returns rule-based insight flags such as spikes, concentration, or negative balance.",
         parameters=dashboard_query_parameters(),
@@ -186,6 +192,7 @@ class DashboardUsersAPIView(DashboardBaseAPIView):
     page_title = "Admin user breakdown"
 
     @extend_schema(
+        tags=["Dashboard"],
         summary="Admin user breakdown",
         description="Shows user-level contribution, only for admin users.",
         parameters=dashboard_query_parameters(),

@@ -66,7 +66,7 @@ def health_check(request):
 def root_endpoint(request):
     """Root endpoint with links to documentation and resources."""
     # Get GitHub URL from environment variable, with fallback
-    github_url = os.getenv("GITHUB_REPO_URL", "https://github.com/yourusername/finance-dashboard")
+    github_url = os.getenv("GITHUB_REPO_URL", "https://github.com/sandeshlavshetty/finance-dashboard")
     
     return Response(
         {
