@@ -7,6 +7,37 @@
   },
   "item": [
     {
+      "name": "Health & Root",
+      "item": [
+        {
+          "name": "Root - API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "API root endpoint that shows available endpoints, documentation links, and implementation guide."
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health/",
+              "host": ["{{base_url}}"],
+              "path": ["health", ""]
+            },
+            "description": "Health check endpoint to verify API is running and healthy."
+          }
+        }
+      ]
+    },
+    {
       "name": "Auth",
       "item": [
         {
@@ -321,120 +352,120 @@
                 { "key": "end_date", "value": "2026-01-31" }
               ]
             }
-          },
-          {
-            "name": "Comparison",
-            "request": {
-              "method": "GET",
-              "header": [
-                { "key": "Authorization", "value": "Bearer {{access_token}}" }
-              ],
-              "url": {
-                "raw": "{{base_url}}/api/dashboard/comparison/?start_date=2026-01-01&end_date=2026-01-31",
-                "host": ["{{base_url}}"],
-                "path": ["api", "dashboard", "comparison", ""],
-                "query": [
-                  { "key": "start_date", "value": "2026-01-01" },
-                  { "key": "end_date", "value": "2026-01-31" }
-                ]
-              },
-              "description": "Period-over-period comparison endpoint."
-            }
-          },
-          {
-            "name": "Category Breakdown",
-            "request": {
-              "method": "GET",
-              "header": [
-                { "key": "Authorization", "value": "Bearer {{access_token}}" }
-              ],
-              "url": {
-                "raw": "{{base_url}}/api/dashboard/categories/?start_date=2026-01-01&end_date=2026-01-31",
-                "host": ["{{base_url}}"],
-                "path": ["api", "dashboard", "categories", ""],
-                "query": [
-                  { "key": "start_date", "value": "2026-01-01" },
-                  { "key": "end_date", "value": "2026-01-31" }
-                ]
-              },
-              "description": "Category-wise totals and record counts."
-            }
-          },
-          {
-            "name": "Top Spending Categories",
-            "request": {
-              "method": "GET",
-              "header": [
-                { "key": "Authorization", "value": "Bearer {{access_token}}" }
-              ],
-              "url": {
-                "raw": "{{base_url}}/api/dashboard/top-spending/?start_date=2026-01-01&end_date=2026-01-31",
-                "host": ["{{base_url}}"],
-                "path": ["api", "dashboard", "top-spending", ""],
-                "query": [
-                  { "key": "start_date", "value": "2026-01-01" },
-                  { "key": "end_date", "value": "2026-01-31" }
-                ]
-              },
-              "description": "Top expense categories ranked by amount."
-            }
-          },
-          {
-            "name": "Monthly Trends",
-            "request": {
-              "method": "GET",
-              "header": [
-                { "key": "Authorization", "value": "Bearer {{access_token}}" }
-              ],
-              "url": {
-                "raw": "{{base_url}}/api/dashboard/trends/?start_date=2026-01-01&end_date=2026-01-31",
-                "host": ["{{base_url}}"],
-                "path": ["api", "dashboard", "trends", ""],
-                "query": [
-                  { "key": "start_date", "value": "2026-01-01" },
-                  { "key": "end_date", "value": "2026-01-31" }
-                ]
-              },
-              "description": "Monthly income and expense trend view."
-            }
-          },
-          {
-            "name": "Insights",
-            "request": {
-              "method": "GET",
-              "header": [
-                { "key": "Authorization", "value": "Bearer {{access_token}}" }
-              ],
-              "url": {
-                "raw": "{{base_url}}/api/dashboard/insights/?start_date=2026-01-01&end_date=2026-01-31",
-                "host": ["{{base_url}}"],
-                "path": ["api", "dashboard", "insights", ""],
-                "query": [
-                  { "key": "start_date", "value": "2026-01-01" },
-                  { "key": "end_date", "value": "2026-01-31" }
-                ]
-              },
-              "description": "Business insight flags from the dashboard engine."
-            }
-          },
-          {
-            "name": "Admin User Breakdown",
-            "request": {
-              "method": "GET",
-              "header": [
-                { "key": "Authorization", "value": "Bearer {{access_token}}" }
-              ],
-              "url": {
-                "raw": "{{base_url}}/api/dashboard/users/?start_date=2026-01-01&end_date=2026-01-31",
-                "host": ["{{base_url}}"],
-                "path": ["api", "dashboard", "users", ""],
-                "query": [
-                  { "key": "start_date", "value": "2026-01-01" },
-                  { "key": "end_date", "value": "2026-01-31" }
-                ]
-              },
-              "description": "Admin-only user-level contribution breakdown."
-            }
+          }
+        },
+        {
+          "name": "Comparison",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/comparison/?start_date=2026-01-01&end_date=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "comparison", ""],
+              "query": [
+                { "key": "start_date", "value": "2026-01-01" },
+                { "key": "end_date", "value": "2026-01-31" }
+              ]
+            },
+            "description": "Period-over-period comparison endpoint."
+          }
+        },
+        {
+          "name": "Category Breakdown",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/categories/?start_date=2026-01-01&end_date=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "categories", ""],
+              "query": [
+                { "key": "start_date", "value": "2026-01-01" },
+                { "key": "end_date", "value": "2026-01-31" }
+              ]
+            },
+            "description": "Category-wise totals and record counts."
+          }
+        },
+        {
+          "name": "Top Spending Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/top-spending/?start_date=2026-01-01&end_date=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "top-spending", ""],
+              "query": [
+                { "key": "start_date", "value": "2026-01-01" },
+                { "key": "end_date", "value": "2026-01-31" }
+              ]
+            },
+            "description": "Top expense categories ranked by amount."
+          }
+        },
+        {
+          "name": "Monthly Trends",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/trends/?start_date=2026-01-01&end_date=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "trends", ""],
+              "query": [
+                { "key": "start_date", "value": "2026-01-01" },
+                { "key": "end_date", "value": "2026-01-31" }
+              ]
+            },
+            "description": "Monthly income and expense trend view."
+          }
+        },
+        {
+          "name": "Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/insights/?start_date=2026-01-01&end_date=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "insights", ""],
+              "query": [
+                { "key": "start_date", "value": "2026-01-01" },
+                { "key": "end_date", "value": "2026-01-31" }
+              ]
+            },
+            "description": "Business insight flags from the dashboard engine."
+          }
+        },
+        {
+          "name": "Admin User Breakdown",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/users/?start_date=2026-01-01&end_date=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "users", ""],
+              "query": [
+                { "key": "start_date", "value": "2026-01-01" },
+                { "key": "end_date", "value": "2026-01-31" }
+              ]
+            },
+            "description": "Admin-only user-level contribution breakdown."
           }
         },
         {
