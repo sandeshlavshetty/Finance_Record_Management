@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from drf_spectacular.utils import extend_schema
@@ -21,6 +22,7 @@ from drf_spectacular.utils import extend_schema
         }
     },
 )
+@permission_classes([AllowAny])
 @api_view(["GET"])
 def health_check(request):
     """Health check endpoint to verify API is running."""
@@ -59,6 +61,7 @@ def health_check(request):
         }
     },
 )
+@permission_classes([AllowAny])
 @api_view(["GET"])
 def root_endpoint(request):
     """Root endpoint with links to documentation and resources."""
