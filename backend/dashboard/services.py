@@ -63,10 +63,27 @@ class DashboardService:
         return ((current - previous) / previous) * Decimal("100")
 
     @classmethod
-    def _period_comparison(cls, queryset):
+    def _period_comparison(cls, queryset, filters=None):
+        filters = filters or {}
         bounds = queryset.aggregate(start_date=Min("date"), end_date=Max("date"))
-        current_start = bounds["start_date"]
-        current_end = bounds["end_date"]
+
+        # Prefer explicitly requested date range so comparison windows are stable
+        # even when records do not span the full selected period.
+        requested_start = filters.get("start_date")
+        requested_end = filters.get("end_date")
+
+        if requested_start and requested_end:
+            current_start = requested_start
+            current_end = requested_end
+        elif requested_start:
+            current_start = requested_start
+            current_end = bounds["end_date"] or requested_start
+        elif requested_end:
+            current_start = bounds["start_date"] or requested_end
+            current_end = requested_end
+        else:
+            current_start = bounds["start_date"]
+            current_end = bounds["end_date"]
 
         if not current_start or not current_end:
             empty_metrics = {"total_income": cls._zero(), "total_expense": cls._zero(), "net_balance": cls._zero(), "transaction_count": 0}
@@ -187,7 +204,7 @@ class DashboardService:
     @classmethod
     def _user_breakdown(cls, queryset):
         users = list(
-            queryset.values(user_id=F("user__id"), user_email=F("user__email"))
+            queryset.values("user_id", user_email=F("user__email"))
             .annotate(
                 total_income=Sum(
                     Case(
@@ -217,7 +234,7 @@ class DashboardService:
     def get_summary(cls, user, filters):
         queryset = cls._apply_filters(cls._base_queryset(user), filters)
         summary = cls._totals(queryset)
-        comparison = cls._period_comparison(queryset)
+        comparison = cls._period_comparison(queryset, filters)
         top_categories = cls._top_spending_categories(queryset, summary["total_expense"])
 
         recent_transactions = list(
@@ -261,7 +278,7 @@ class DashboardService:
     @classmethod
     def get_comparison(cls, user, filters):
         queryset = cls._apply_filters(cls._base_queryset(user), filters)
-        comparison = cls._period_comparison(queryset)
+        comparison = cls._period_comparison(queryset, filters)
         return {"period_comparison": comparison}
 
     @classmethod
@@ -310,7 +327,7 @@ class DashboardService:
     def get_insights(cls, user, filters):
         queryset = cls._apply_filters(cls._base_queryset(user), filters)
         summary = cls._totals(queryset)
-        comparison = cls._period_comparison(queryset)
+        comparison = cls._period_comparison(queryset, filters)
         top_categories = cls._top_spending_categories(queryset, summary["total_expense"])
         return {"insights": cls._insights(summary, comparison, top_categories)}
 

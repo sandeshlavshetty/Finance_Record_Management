@@ -4,9 +4,10 @@ import logging
 import os
 
 from django.core.cache import cache
+from django.db import DatabaseError, OperationalError, ProgrammingError
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -53,10 +54,16 @@ class UserViewSet(
     def setup(self, request, *args, **kwargs):
         """First-time setup: creates initial admin account with security checks"""
 
-        # 1. CHECK: DB must be empty
-        if User.objects.exists():
-            logger.warning(f"Setup attempted when DB not empty from {request.META.get('REMOTE_ADDR')}")
-            raise ValidationError({"detail": "Database already initialized"})
+        # 1. CHECK: DB must be ready and empty
+        try:
+            if User.objects.exists():
+                logger.warning(f"Setup attempted when DB not empty from {request.META.get('REMOTE_ADDR')}")
+                raise ValidationError({"detail": "Database already initialized"})
+        except (ProgrammingError, OperationalError, DatabaseError) as exc:
+            logger.exception("Setup failed during database readiness check: %s", exc)
+            raise APIException(
+                "Database not ready. Run migrations and verify database environment variables."
+            )
 
         # 2. CHECK: Rate limit - max 5 attempts per hour per IP
         client_ip = request.META.get("REMOTE_ADDR", "unknown")
@@ -82,7 +89,13 @@ class UserViewSet(
         # 4. CREATE: Admin user
         serializer = UserCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save(role="ADMIN", is_staff=True)
+        try:
+            user = serializer.save(role="ADMIN", is_staff=True)
+        except (ProgrammingError, OperationalError, DatabaseError) as exc:
+            logger.exception("Setup failed while creating initial admin: %s", exc)
+            raise APIException(
+                "Unable to create initial admin. Run migrations and verify database connectivity."
+            )
 
         logger.info(f"Setup complete: Admin {user.email} created from {client_ip}")
         cache.delete(cache_key)  # Clear attempts on success
