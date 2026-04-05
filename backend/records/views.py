@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 
@@ -11,6 +12,14 @@ from records.serializers import RecordSerializer, RecordWriteSerializer
 from records.services import RecordService
 
 
+@extend_schema_view(
+    create=extend_schema(tags=["Records"], summary="Create record"),
+    list=extend_schema(tags=["Records"], summary="List records"),
+    retrieve=extend_schema(tags=["Records"], summary="Get record"),
+    update=extend_schema(tags=["Records"], summary="Update record"),
+    partial_update=extend_schema(tags=["Records"], summary="Partially update record"),
+    destroy=extend_schema(tags=["Records"], summary="Delete record"),
+)
 class RecordViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,

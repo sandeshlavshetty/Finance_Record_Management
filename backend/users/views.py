@@ -5,11 +5,12 @@ import os
 
 from django.core.cache import cache
 from django.db import DatabaseError, OperationalError, ProgrammingError
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from core.permissions import IsAdminRole
 from core.responses import success_response
@@ -25,11 +26,25 @@ from users.serializers import (
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(tags=["Auth"], summary="Login")
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     throttle_scope = "auth"
 
 
+@extend_schema(tags=["Auth"], summary="Refresh access token")
+class CustomTokenRefreshView(TokenRefreshView):
+    throttle_scope = "auth"
+
+
+@extend_schema_view(
+    create=extend_schema(tags=["Users"], summary="Create user"),
+    list=extend_schema(tags=["Users"], summary="List users"),
+    retrieve=extend_schema(tags=["Users"], summary="Get user"),
+    setup=extend_schema(tags=["Users"], summary="Initial admin setup"),
+    assign_role=extend_schema(tags=["Users"], summary="Assign user role"),
+    set_status=extend_schema(tags=["Users"], summary="Set user active status"),
+)
 class UserViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
