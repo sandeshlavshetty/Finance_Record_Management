@@ -22,8 +22,8 @@ from drf_spectacular.utils import extend_schema
         }
     },
 )
-@permission_classes([AllowAny])
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def health_check(request):
     """Health check endpoint to verify API is running."""
     return Response(
@@ -61,8 +61,8 @@ def health_check(request):
         }
     },
 )
-@permission_classes([AllowAny])
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def root_endpoint(request):
     """Root endpoint with links to documentation and resources."""
     # Get GitHub URL from environment variable, with fallback
