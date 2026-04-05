@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -13,7 +14,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
 DEBUG = os.getenv("DEBUG", "0") == "1"
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "*").split(",") if host.strip()]
+
+def _normalize_allowed_hosts(raw_hosts: str) -> list[str]:
+    hosts: list[str] = []
+    for token in raw_hosts.split(","):
+        value = token.strip()
+        if not value:
+            continue
+        if value == "*":
+            return ["*"]
+
+        # Accept host values entered as URL (e.g. https://app.onrender.com).
+        if "://" in value:
+            parsed = urlparse(value)
+            if parsed.hostname:
+                hosts.append(parsed.hostname)
+            continue
+
+        # Remove optional port/path if user passes host:port or host/path.
+        value = value.split("/", 1)[0]
+        value = value.split(":", 1)[0]
+        if value:
+            hosts.append(value)
+
+    return hosts
+
+
+ALLOWED_HOSTS = _normalize_allowed_hosts(os.getenv("ALLOWED_HOSTS", "*"))
 
 INSTALLED_APPS = [
     "django.contrib.admin",
